@@ -1,0 +1,248 @@
+:root {
+  --bg-0: #f4efe4;
+  --bg-1: #f1dfc9;
+  --ink: #1f1d1a;
+  --muted: #6e675e;
+  --line: #cbb89f;
+  --panel: #fff8ec;
+  --panel-alt: #f9f2e6;
+  --accent: #7b2d26;
+  --accent-2: #ad5a2b;
+  --good: #2e6f40;
+  --bad: #9c2f27;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background:
+    radial-gradient(90rem 45rem at 0% 0%, #f8efe1 0%, transparent 60%),
+    radial-gradient(80rem 40rem at 100% 100%, #f4dfc7 0%, transparent 65%),
+    linear-gradient(180deg, var(--bg-0), var(--bg-1));
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(540px, 1fr) minmax(220px, 280px);
+  gap: 16px;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.bg-orb {
+  position: fixed;
+  z-index: -1;
+  width: 300px;
+  height: 300px;
+  border-radius: 999px;
+  filter: blur(38px);
+  opacity: 0.35;
+}
+
+.bg-orb-left {
+  top: 40px;
+  left: 30px;
+  background: #efb283;
+}
+
+.bg-orb-right {
+  right: 40px;
+  bottom: 50px;
+  background: #c9845e;
+}
+
+.loading {
+  margin: auto;
+  font-size: 1.2rem;
+  color: var(--muted);
+}
+
+.sidebar,
+.board,
+.block,
+.player-panel {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--panel), var(--panel-alt));
+  box-shadow: 0 12px 30px rgba(52, 31, 8, 0.08);
+}
+
+.sidebar {
+  padding: 12px;
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+}
+
+.sidebar h2 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.sidebar pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.76rem;
+  line-height: 1.35;
+  color: #41392f;
+}
+
+.board {
+  padding: 14px;
+}
+
+.hero {
+  background: linear-gradient(120deg, #fbe7cc, #f5dcc1);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.hero h1 {
+  margin: 0;
+  color: var(--accent);
+}
+
+.hero p {
+  margin: 6px 0 0;
+}
+
+.error {
+  color: var(--bad);
+  font-weight: 600;
+}
+
+.players-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.player-panel {
+  padding: 12px;
+}
+
+.panel-title {
+  margin: 0;
+  color: var(--accent);
+}
+
+.panel-meta {
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.alive {
+  color: var(--good);
+}
+
+.eliminated {
+  color: var(--bad);
+}
+
+.cards-row {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.card-chip {
+  min-width: 104px;
+  text-align: center;
+  border: 1px solid #bca486;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 0.88rem;
+}
+
+.card-hidden {
+  background: #f9ecd7;
+}
+
+.card-revealed {
+  background: #f5cfc5;
+}
+
+.block {
+  margin-top: 12px;
+  padding: 12px;
+}
+
+.block h2 {
+  margin: 0 0 10px;
+  color: var(--accent);
+}
+
+.waiting {
+  color: var(--muted);
+}
+
+.moves-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.move-btn,
+.new-game-btn {
+  border: 1px solid #9c7a57;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fdf4e5, #f7e4c9);
+  color: #3d2a15;
+  font-weight: 600;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.move-btn:hover,
+.new-game-btn:hover {
+  border-color: #6f2b23;
+}
+
+.new-game-btn {
+  margin-top: 10px;
+}
+
+.log-list {
+  margin: 0;
+  padding-left: 18px;
+  max-height: 260px;
+  overflow: auto;
+}
+
+.log-list li {
+  margin: 4px 0;
+}
+
+.log-turn {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+@media (max-width: 1200px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    max-height: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .players-grid {
+    grid-template-columns: 1fr;
+  }
+}

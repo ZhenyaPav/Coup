@@ -1,0 +1,35 @@
+services:
+  coup-app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: coup-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 8080
+      GAME_POLL_HINT_MS: 1500
+      WEB_DIST_DIR: /app/apps/web/dist
+    ports:
+      - '8080:8080'
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8080/api/health']
+      interval: 15s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  coup-app-dev:
+    profiles: ['dev']
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    command: ["sh", "-lc", "pnpm dev:server"]
+    working_dir: /app
+    volumes:
+      - ..:/app
+    ports:
+      - '8080:8080'
+    environment:
+      NODE_ENV: development
+      PORT: 8080

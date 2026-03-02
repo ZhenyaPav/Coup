@@ -1,0 +1,23 @@
+{
+  "name": "coup",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.12.3",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:docker": "sh deploy/test-docker.sh",
+    "test:compose": "sh deploy/test-compose.sh",
+    "dev:server": "pnpm --filter @coup/game-logic build && pnpm --filter @coup/server dev",
+    "dev:web": "pnpm --filter @coup/web dev"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
+  }
+}
