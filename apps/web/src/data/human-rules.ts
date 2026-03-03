@@ -105,35 +105,35 @@ export const waitingMessages: Record<string, string> = {
 };
 
 export const actionDescriptions: Record<string, string> = {
-  'declare_action:income': 'Take 1 coin - cannot be blocked or challenged',
-  'declare_action:foreign_aid': 'Take 2 coins - can be blocked by Duke',
-  'declare_action:coup': 'Pay 7 coins, target loses 1 influence (unstoppable)',
-  'declare_action:tax': 'Claim Duke to take 3 coins from treasury',
-  'declare_action:assassinate': 'Pay 3 coins, target loses influence unless blocked by Contessa',
-  'declare_action:steal': 'Claim Captain to steal up to 2 coins from target',
-  'declare_action:exchange': 'Claim Ambassador to draw 2 cards and keep 2',
+  'declare_action:income': 'Gain 1 coin from treasury — Cannot be blocked or challenged',
+  'declare_action:foreign_aid': 'Gain 2 coins from treasury — Can be blocked by Duke',
+  'declare_action:coup': 'Pay 7 coins — Target loses 1 influence (cannot be blocked/challenged)',
+  'declare_action:tax': 'Claim Duke — Gain 3 coins from treasury',
+  'declare_action:assassinate': 'Claim Assassin — Pay 3 coins, target loses 1 influence (can be blocked by Contessa)',
+  'declare_action:steal': 'Claim Captain — Take up to 2 coins from target (can be blocked by Captain/Ambassador)',
+  'declare_action:exchange': 'Claim Ambassador — Draw 2 cards, keep 2 of your cards',
   'challenge_action': 'Challenge that opponent does not have the claimed card',
   'challenge_block': 'Challenge that blocker does not have the claimed card',
   'allow': 'Allow the action to proceed',
-  'block:duke': 'Block Foreign Aid by claiming Duke',
-  'block:contessa': 'Block Assassination by claiming Contessa',
-  'block:captain': 'Block Stealing by claiming Captain',
-  'block:ambassador': 'Block Stealing by claiming Ambassador'
+  'block:duke': 'Block Foreign Aid — Claim Duke',
+  'block:contessa': 'Block Assassination — Claim Contessa',
+  'block:captain': 'Block Stealing — Claim Captain',
+  'block:ambassador': 'Block Stealing — Claim Ambassador'
 };
 
 export const actionButtonLabels: Record<string, string> = {
-  'income': 'Income (+1)',
-  'foreign_aid': 'Foreign Aid (+2)',
-  'coup': 'Coup (7 coins)',
-  'tax': 'Tax as Duke (+3)',
-  'assassinate': 'Assassinate (3 coins)',
-  'steal': 'Steal',
-  'exchange': 'Exchange as Ambassador'
+  'income': 'Income +1',
+  'foreign_aid': 'Foreign Aid +2',
+  'coup': 'Coup −7',
+  'tax': 'Tax (claim Duke) +3',
+  'assassinate': 'Assassinate (claim Assassin) −3',
+  'steal': 'Steal (claim Captain) +2',
+  'exchange': 'Exchange (claim Ambassador)'
 };
 
 export const blockLabels: Record<string, string> = {
-  'duke': 'Block as Duke',
-  'contessa': 'Block as Contessa',
-  'captain': 'Block as Captain',
-  'ambassador': 'Block as Ambassador'
+  'duke': 'Block (claim Duke)',
+  'contessa': 'Block (claim Contessa)',
+  'captain': 'Block (claim Captain)',
+  'ambassador': 'Block (claim Ambassador)'
 };

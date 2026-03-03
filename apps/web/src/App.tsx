@@ -48,6 +48,52 @@ function getActionIcon(moveType: string, action?: string) {
   return <Sparkles size={16} />;
 }
 
+function parseActionLabel(label: string): { main: string; claim?: string; coinEffect?: string } {
+  // Parse formats like: "Tax (claim Duke) +3" or "Income +1" or "Exchange (claim Ambassador)"
+  const claimMatch = label.match(/\s*\(claim\s+([^)]+)\)\s*/);
+  const claim = claimMatch ? claimMatch[1] : undefined;
+  
+  // Extract coin effect (+N or −N at the end)
+  const coinMatch = label.match(/\s*([+−]\d+)\s*$/);
+  const coinEffect = coinMatch ? coinMatch[1] : undefined;
+  
+  // Main part is everything before claim and coin effect
+  let main = label;
+  if (claimMatch) {
+    main = main.replace(claimMatch[0], ' ').trim();
+  }
+  if (coinMatch) {
+    main = main.replace(coinMatch[0], '').trim();
+  }
+  
+  return { main, claim, coinEffect };
+}
+
+function MoveButtonContent({ label, move }: { label: string; move: Move }) {
+  const { main, claim, coinEffect } = parseActionLabel(label);
+  
+  // Determine coin effect styling
+  const isCost = coinEffect?.startsWith('−');
+  const coinClass = isCost ? 'coin-badge cost' : 'coin-badge gain';
+  
+  return (
+    <>
+      <span className="move-btn-main">{main}</span>
+      {claim && (
+        <span className="move-btn-claim">claim {claim}</span>
+      )}
+      {coinEffect && (
+        <span className={coinClass}>{coinEffect}</span>
+      )}
+      {move.type === 'declare_action' && move.target && (
+        <span className="move-btn-target">
+          → {move.target === 'human' ? 'You' : 'AI'}
+        </span>
+      )}
+    </>
+  );
+}
+
 function moveLabel(move: Move, state?: GameStateResponse['state']): string {
   if (move.type === 'declare_action') {
     const label = actionButtonLabels[move.action] || move.action;
@@ -57,7 +103,7 @@ function moveLabel(move: Move, state?: GameStateResponse['state']): string {
     return label;
   }
   if (move.type === 'block') {
-    return blockLabels[move.as] || `Block as ${move.as}`;
+    return blockLabels[move.as] || `Block (claim ${move.as})`;
   }
   if (move.type === 'challenge_action') return 'Challenge Action';
   if (move.type === 'challenge_block') return 'Challenge Block';
@@ -301,6 +347,7 @@ export default function App() {
             <div className="moves-grid">
               {legalMoves.map((move, index) => {
                 const actionType = move.type === 'declare_action' ? move.action : undefined;
+                const label = moveLabel(move, data.state);
                 return (
                   <motion.button
                     key={`${move.type}-${index}`}
@@ -315,7 +362,7 @@ export default function App() {
                     transition={{ delay: index * 0.05 }}
                   >
                     {getActionIcon(move.type, actionType)}
-                    {moveLabel(move, data.state)}
+                    <MoveButtonContent label={label} move={move} />
                   </motion.button>
                 );
               })}

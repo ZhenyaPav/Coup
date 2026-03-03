@@ -753,6 +753,57 @@ body::before {
   border-left: 3px solid var(--ink-muted);
 }
 
+/* Move Button Content Layout */
+.move-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.move-btn-main {
+  font-weight: 600;
+}
+
+.move-btn-claim {
+  font-size: var(--font-xs);
+  color: var(--ink-muted);
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.move-btn-target {
+  font-size: var(--font-xs);
+  color: var(--accent-gold);
+  font-weight: 600;
+  margin-left: auto;
+}
+
+/* Coin Badges */
+.coin-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: var(--font-xs);
+  font-weight: 700;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.coin-badge.gain {
+  background: rgba(45, 158, 95, 0.2);
+  color: var(--accent-emerald);
+  border: 1px solid rgba(45, 158, 95, 0.3);
+}
+
+.coin-badge.cost {
+  background: rgba(199, 62, 62, 0.2);
+  color: var(--accent-crimson);
+  border: 1px solid rgba(199, 62, 62, 0.3);
+}
+
 /* ============================================
    GAME LOG
    ============================================ */
