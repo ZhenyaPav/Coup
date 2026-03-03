@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App';
 
@@ -57,7 +57,7 @@ describe('App', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('income')).toBeTruthy();
+      expect(screen.getByText('Income (+1)')).toBeTruthy();
     });
 
     expect(fetchMock).toHaveBeenCalled();
@@ -85,7 +85,7 @@ describe('App', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Waiting for AI turn/i)).toBeTruthy();
+      expect(screen.getByText(/Waiting for AI to choose an action/i)).toBeTruthy();
     });
   });
 
@@ -107,10 +107,41 @@ describe('App', () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText('income')).toBeTruthy();
+      expect(screen.getByText('Income (+1)')).toBeTruthy();
     });
 
     expect(calls.some((url) => url.includes('/api/game/new'))).toBe(false);
     expect(calls.some((url) => url.includes('/api/game/state?viewer=human'))).toBe(true);
+  });
+
+  it('starts a new game with selected first player', async () => {
+    const fetchMock = vi.fn(async () => {
+      return new Response(JSON.stringify(humanTurnState), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    });
+
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Income (+1)')).toBeTruthy();
+    });
+
+    fireEvent.change(screen.getByLabelText('First Turn'), {
+      target: { value: 'ai' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'New Game' }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        '/api/game/new',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ startingPlayer: 'ai' })
+        })
+      );
+    });
   });
 });

@@ -73,6 +73,7 @@ export class CoupEngine {
     };
 
     const legalMoves = this.getLegalMoves(viewer);
+    const isYourTurn = legalMoves.length > 0;
     return {
       phase: this.state.phase,
       currentPlayer: this.state.currentPlayer,
@@ -82,8 +83,9 @@ export class CoupEngine {
       pendingBlock: this.state.pendingBlock,
       players,
       legalMoves,
-      isYourTurn: legalMoves.length > 0,
-      waitingReason: legalMoves.length > 0 ? undefined : this.waitingReasonFor(viewer),
+      isYourTurn,
+      nextInstruction: this.nextInstructionFor(viewer, isYourTurn),
+      waitingReason: isYourTurn ? undefined : this.waitingReasonFor(viewer),
       log: this.state.log.slice(-50)
     };
   }
@@ -514,6 +516,17 @@ export class CoupEngine {
   }
 
   private requestReveal(player: PlayerId, reason: string, continuation: ContinuationType): void {
+    const hidden = this.hiddenCards(player);
+    if (hidden.length === 1) {
+      const forced = hidden[0]!;
+      forced.revealed = true;
+      this.log(player, 'reveal', `${player} reveals ${forced.character}.`);
+      this.updateAliveStatus(player);
+      if (this.state.phase === 'game_over') return;
+      this.continueAfterReveal(continuation);
+      return;
+    }
+
     this.state.pendingReveal = { player, reason, continuation };
     setPhase(this.state, 'resolve');
   }
@@ -612,6 +625,18 @@ export class CoupEngine {
     if (this.state.phase === 'await_action_response') return 'WAITING_FOR_ACTION_RESPONSE';
     if (this.state.phase === 'await_block_response') return 'WAITING_FOR_BLOCK_RESPONSE';
     return 'WAITING';
+  }
+
+  private nextInstructionFor(viewer: PlayerId, isYourTurn: boolean): string {
+    if (this.state.phase === 'game_over') return 'Game over. No action needed.';
+    if (isYourTurn) {
+      return viewer === 'ai'
+        ? 'AI action is expected. Call POST /api/game/action with one legal move.'
+        : 'Human action is expected.';
+    }
+    return oppositePlayer(viewer) === 'ai'
+      ? 'Wait. AI action is expected.'
+      : 'Wait. Human action is expected.';
   }
 
   private newCard(character: Character): InfluenceCard {

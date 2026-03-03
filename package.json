@@ -11,6 +11,7 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "test:docker": "sh deploy/test-docker.sh",
+    "test:docker:suite": "sh deploy/test-suite-docker.sh",
     "test:compose": "sh deploy/test-compose.sh",
     "dev:server": "pnpm --filter @coup/game-logic build && pnpm --filter @coup/server dev",
     "dev:web": "pnpm --filter @coup/web dev"

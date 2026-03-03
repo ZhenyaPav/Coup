@@ -1,37 +1,78 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getRulesMarkdown, getState, newGame, submitAction, type GameStateResponse, type Move } from './api';
+import { getState, newGame, submitAction, type GameStateResponse, type Move, type PlayerId } from './api';
 import { PlayerPanel } from './components/PlayerPanel';
+import { RulesPanel } from './components/RulesPanel';
+import { QuickReference } from './components/QuickReference';
+import { phaseNames, waitingMessages, actionDescriptions, actionButtonLabels, blockLabels } from './data/human-rules';
 
 const POLL_MS = 1500;
 
-function moveLabel(move: Move): string {
+function formatCharacterName(character: string): string {
+  return character.charAt(0).toUpperCase() + character.slice(1);
+}
+
+function moveLabel(move: Move, state?: GameStateResponse['state']): string {
   if (move.type === 'declare_action') {
-    return `${move.action}${move.target ? ` -> ${move.target}` : ''}`;
+    const label = actionButtonLabels[move.action] || move.action;
+    if (move.target) {
+      return `${label} → ${move.target === 'human' ? 'You' : 'AI'}`;
+    }
+    return label;
   }
-  if (move.type === 'block') return `block as ${move.as}`;
-  if (move.type === 'choose_influence_to_reveal') return `reveal ${move.cardId}`;
-  if (move.type === 'choose_exchange') return `keep ${move.keepCardIds.join(', ')}`;
+  if (move.type === 'block') {
+    return blockLabels[move.as] || `Block as ${move.as}`;
+  }
+  if (move.type === 'challenge_action') return 'Challenge Action';
+  if (move.type === 'challenge_block') return 'Challenge Block';
+  if (move.type === 'allow') return 'Allow';
+  if (move.type === 'choose_influence_to_reveal') {
+    if (!state) return `Reveal ${move.cardId}`;
+    const allCards = [...state.players.human.cards, ...state.players.ai.cards];
+    const card = allCards.find((candidate) => candidate.id === move.cardId);
+    if (card?.character) {
+      return `Reveal ${formatCharacterName(card.character)} (${move.cardId})`;
+    }
+    return `Reveal Card (${move.cardId})`;
+  }
+  if (move.type === 'choose_exchange') return `Keep ${move.keepCardIds.join(', ')}`;
   return move.type;
 }
 
-function splitRules(markdown: string): { rulesText: string; curlText: string } {
-  const marker = '## Curl Examples';
-  const index = markdown.indexOf(marker);
-  if (index < 0) {
-    return { rulesText: markdown, curlText: 'Curl examples were not found in rules markdown.' };
+function getMoveDescription(move: Move): string {
+  if (move.type === 'declare_action') {
+    return actionDescriptions[`declare_action:${move.action}`] || '';
   }
+  if (move.type === 'block') {
+    return actionDescriptions[`block:${move.as}`] || `Block as ${move.as}`;
+  }
+  return actionDescriptions[move.type] || '';
+}
 
-  return {
-    rulesText: markdown.slice(0, index).trim(),
-    curlText: markdown.slice(index).trim()
-  };
+function formatPhase(phase: string): string {
+  return phaseNames[phase] || phase;
+}
+
+function getWaitingMessage(reason?: string): string {
+  return waitingMessages[reason || ''] || 'Waiting for AI...';
+}
+
+function logActorClass(actor: string): string {
+  if (actor === 'human') return 'log-human';
+  if (actor === 'ai') return 'log-ai';
+  return 'log-system';
+}
+
+function logActorLabel(actor: string): string {
+  if (actor === 'human') return 'You';
+  if (actor === 'ai') return 'AI';
+  return 'System';
 }
 
 export default function App() {
   const [data, setData] = useState<GameStateResponse | null>(null);
-  const [rulesMarkdown, setRulesMarkdown] = useState('Loading rules...');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [startingPlayer, setStartingPlayer] = useState<PlayerId>('human');
 
   const refresh = async () => {
     try {
@@ -47,26 +88,19 @@ export default function App() {
     let cancelled = false;
 
     const bootstrap = async () => {
-      const [stateResult, rulesResult] = await Promise.allSettled([getState('human'), getRulesMarkdown()]);
-
-      if (cancelled) return;
-
-      if (stateResult.status === 'fulfilled') {
-        setData(stateResult.value);
-      } else {
-        setError(stateResult.reason instanceof Error ? stateResult.reason.message : 'Failed to load game');
-      }
-
-      if (rulesResult.status === 'fulfilled') {
-        setRulesMarkdown(rulesResult.value);
-      } else {
-        setRulesMarkdown('Rules markdown unavailable.');
+      try {
+        const state = await getState('human');
+        if (!cancelled) {
+          setData(state);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load game');
+        }
       }
     };
 
-    bootstrap().catch((err) => {
-      setError(err instanceof Error ? err.message : 'Failed to bootstrap game');
-    });
+    bootstrap();
 
     const timer = setInterval(() => {
       refresh().catch(() => undefined);
@@ -79,12 +113,11 @@ export default function App() {
   }, []);
 
   const legalMoves = useMemo(() => data?.state.legalMoves ?? [], [data]);
-  const { rulesText, curlText } = useMemo(() => splitRules(rulesMarkdown), [rulesMarkdown]);
 
   const onNewGame = async () => {
     setBusy(true);
     try {
-      const next = await newGame();
+      const next = await newGame(startingPlayer);
       setData(next);
       setError(null);
     } catch (err) {
@@ -108,7 +141,14 @@ export default function App() {
   };
 
   if (!data) {
-    return <main className="shell"><div className="loading">Loading game...</div></main>;
+    return (
+      <main className="shell">
+        <div className="loading">
+          <div className="loading-spinner"></div>
+          <p>Loading game...</p>
+        </div>
+      </main>
+    );
   }
 
   return (
@@ -116,19 +156,54 @@ export default function App() {
       <div className="bg-orb bg-orb-left" />
       <div className="bg-orb bg-orb-right" />
 
-      <aside className="sidebar">
-        <h2>Rules</h2>
-        <pre>{rulesText}</pre>
+      <aside className="sidebar sidebar-rules">
+        <h2>How to Play</h2>
+        <RulesPanel />
       </aside>
 
       <section className="board">
         <header className="hero">
-          <h1>Coup: Human vs AI</h1>
-          <p>
-            Turn {data.state.turnNumber} | Phase: {data.state.phase}
-            {data.state.winner ? ` | Winner: ${data.state.winner}` : ''}
-          </p>
-          {error ? <p className="error">{error}</p> : null}
+          <div className="hero-top">
+            <h1>Coup: Human vs AI</h1>
+            <div className="new-game-controls">
+              <label className="start-label" htmlFor="starting-player">
+                First Turn
+              </label>
+              <select
+                id="starting-player"
+                className="start-select"
+                value={startingPlayer}
+                onChange={(event) => setStartingPlayer(event.target.value as PlayerId)}
+                disabled={busy}
+              >
+                <option value="human">You</option>
+                <option value="ai">AI</option>
+              </select>
+              <button className="new-game-btn new-game-btn-top" onClick={onNewGame} disabled={busy}>
+                New Game
+              </button>
+            </div>
+          </div>
+          <div className="hero-status">
+            <span className="status-item">
+              <span className="status-label">Turn:</span>
+              <span className="status-value">{data.state.turnNumber}</span>
+            </span>
+            <span className="status-separator">|</span>
+            <span className="status-item">
+              <span className="status-label">Phase:</span>
+              <span className="status-value">{formatPhase(data.state.phase)}</span>
+            </span>
+            {data.state.winner && (
+              <>
+                <span className="status-separator">|</span>
+                <span className="winner-announcement">
+                  {data.state.winner === 'human' ? '🎉 You Win!' : '🤖 AI Wins'}
+                </span>
+              </>
+            )}
+          </div>
+          {error && <p className="error">{error}</p>}
         </header>
 
         <div className="players-grid">
@@ -136,42 +211,53 @@ export default function App() {
           <PlayerPanel viewer="human" player={data.state.players.ai} />
         </div>
 
-        <section className="block">
-          <h2>Actions</h2>
+        <section className="block actions-block">
+          <h2>{data.state.isYourTurn ? 'Your Actions' : 'Waiting'}</h2>
           {!data.state.isYourTurn ? (
-            <p className="waiting">Waiting for AI turn ({data.state.waitingReason ?? 'WAITING'}).</p>
+            <div className="waiting-container">
+              <div className="waiting-spinner"></div>
+              <p className="waiting">{getWaitingMessage(data.state.waitingReason)}</p>
+            </div>
           ) : (
             <div className="moves-grid">
               {legalMoves.map((move, index) => (
-                <button key={`${move.type}-${index}`} className="move-btn" onClick={() => onMove(move)} disabled={busy}>
-                  {moveLabel(move)}
+                <button
+                  key={`${move.type}-${index}`}
+                  className={`move-btn move-btn--${move.type}`}
+                  onClick={() => onMove(move)}
+                  disabled={busy}
+                  title={getMoveDescription(move)}
+                >
+                  {moveLabel(move, data.state)}
                 </button>
               ))}
             </div>
           )}
-          <button className="new-game-btn" onClick={onNewGame} disabled={busy}>
-            New Game
-          </button>
         </section>
 
         <section className="block">
-          <h2>Event Log</h2>
+          <h2>Game Log</h2>
           <ul className="log-list">
             {data.state.log
               .slice()
               .reverse()
               .map((entry, index) => (
-                <li key={`${entry.turn}-${entry.actor}-${index}`}>
-                  <span className="log-turn">T{entry.turn}</span> {entry.actor}: {entry.message}
+                <li
+                  key={`${entry.turn}-${entry.actor}-${index}`}
+                  className={logActorClass(entry.actor)}
+                >
+                  <span className="log-turn">T{entry.turn}</span>
+                  <span className="log-actor">{logActorLabel(entry.actor)}</span>
+                  <span className="log-message">{entry.message}</span>
                 </li>
               ))}
           </ul>
         </section>
       </section>
 
-      <aside className="sidebar">
-        <h2>API Quick Curl</h2>
-        <pre>{curlText}</pre>
+      <aside className="sidebar sidebar-reference">
+        <h2>Quick Reference</h2>
+        <QuickReference />
       </aside>
     </main>
   );

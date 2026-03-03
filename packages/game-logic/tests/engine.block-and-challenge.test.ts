@@ -45,4 +45,18 @@ describe('CoupEngine blocks and challenges', () => {
     expect(state.currentPlayer).toBe('ai');
     expect(state.phase).toBe('await_action');
   });
+
+  it('auto-reveals when only one hidden influence remains', () => {
+    const engine = new CoupEngine(() => 0.5);
+    const state = engine.newGame('human');
+
+    state.players.ai.cards[0]!.revealed = true;
+    state.players.ai.cards[1]!.revealed = false;
+
+    expect(engine.applyMove('human', { type: 'declare_action', action: 'coup', target: 'ai' }).ok).toBe(true);
+
+    expect(state.pendingReveal).toBeUndefined();
+    expect(state.phase).toBe('game_over');
+    expect(state.winner).toBe('human');
+  });
 });

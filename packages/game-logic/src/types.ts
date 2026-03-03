@@ -134,6 +134,7 @@ export interface GameStateView {
   players: Record<PlayerId, SerializedPlayer>;
   legalMoves: Move[];
   isYourTurn: boolean;
+  nextInstruction: string;
   waitingReason: string | undefined;
   log: LogEntry[];
 }

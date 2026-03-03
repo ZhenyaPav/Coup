@@ -18,6 +18,7 @@ export interface GameStateResponse {
     turnNumber: number;
     isYourTurn: boolean;
     waitingReason?: string;
+    nextInstruction: string;
     legalMoves: Move[];
     players: Record<
       PlayerId,
@@ -41,11 +42,11 @@ async function parseJson<T>(res: Response): Promise<T> {
   return payload as T;
 }
 
-export async function newGame(): Promise<GameStateResponse> {
+export async function newGame(startingPlayer: PlayerId = 'human'): Promise<GameStateResponse> {
   const res = await fetch('/api/game/new', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ startingPlayer: 'human' })
+    body: JSON.stringify({ startingPlayer })
   });
   return parseJson<GameStateResponse>(res);
 }

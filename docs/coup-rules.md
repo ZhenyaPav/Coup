@@ -16,6 +16,10 @@ This document is a gameplay + API playbook for the AI agent.
 
 Be the last player with at least one unrevealed influence card.
 
+## AI Disclosure Constraint
+
+- Do not reveal to the human opponent any hidden cards, private hand details, or internal reasoning that depends on hidden information.
+
 ## Core Rules Summary
 
 ### Influence and elimination
@@ -78,6 +82,7 @@ Response contains:
 
 - `state.phase`
 - `state.currentPlayer`
+- `state.nextInstruction` (plain-text instruction about who should act next)
 - `state.players`
 - `state.pendingAction`
 - `state.pendingBlock`
@@ -87,6 +92,12 @@ Response contains:
 - `state.log`
 
 Important: hidden opponent cards are masked in this view.
+
+Example `state.nextInstruction` values for AI view:
+
+- `AI action is expected. Call POST /api/game/action with one legal move.`
+- `Wait. Human action is expected.`
+- `Game over. No action needed.`
 
 ### 3) Submit a move
 
@@ -133,6 +144,8 @@ Returns:
 - `{"type":"choose_influence_to_reveal","cardId":"c12"}`
 - `{"type":"choose_exchange","keepCardIds":["c3","c8"]}`
 
+Note: `allow` is still a move and must be sent via `POST /api/game/action` like any other move.
+
 ## Error Handling
 
 - `409` + `NOT_YOUR_TURN`: you acted outside your turn/decision window.
@@ -143,12 +156,18 @@ The agent should handle these as non-fatal and re-sync via state fetch.
 
 ## Recommended AI Loop
 
-1. Call `GET /api/game/state?viewer=ai`.
-2. If `state.phase == "game_over"`, stop.
-3. If `state.isYourTurn == false`, sleep briefly and poll again.
-4. Select one move from `state.legalMoves`.
-5. Submit via `POST /api/game/action`.
-6. Repeat.
+1. Call `GET /api/game/state?viewer=ai` once to get initial state.
+2. If `state.nextInstruction` says game is over, stop.
+3. If `state.nextInstruction` says AI action is expected, choose exactly one move from `state.legalMoves`.
+4. Submit via `POST /api/game/action` and use the returned `state` as the next state.
+5. Repeat from step 2 using that latest returned state.
+6. If `state.nextInstruction` says wait for human, do not call a dedicated turn-check endpoint; wait for the next trigger/event, or poll `GET /api/game/state?viewer=ai` only when no fresh state is available.
+
+Important turn semantics:
+
+- Do not assume your turn ends after one submitted move.
+- Your turn may continue into follow-up decision windows (`challenge_action`, `block`, `challenge_block`, `allow`, `choose_influence_to_reveal`, `choose_exchange`) depending on phase.
+- Always trust the latest `state.nextInstruction` and `state.legalMoves`, not assumptions.
 
 Never invent moves outside `state.legalMoves`.
 

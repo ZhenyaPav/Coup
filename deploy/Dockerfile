@@ -13,6 +13,10 @@ FROM deps AS builder
 COPY . .
 RUN pnpm -r build
 
+FROM deps AS test
+COPY . .
+RUN pnpm test
+
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production

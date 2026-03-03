@@ -55,6 +55,16 @@ This includes:
 - server integration tests (`/api` behavior)
 - web UI tests (bootstrap render + waiting/turn states)
 
+## Test Without Local Node/npm/pnpm
+
+Run the full monorepo test suite inside Docker:
+
+```bash
+sh deploy/test-suite-docker.sh
+```
+
+This does not require installing Node.js, npm, or pnpm on your system.
+
 ## API quick reference
 
 - `POST /api/game/new`
@@ -91,7 +101,7 @@ Open `http://localhost:8080`.
 Docker smoke test:
 
 ```bash
-pnpm test:docker
+sh deploy/test-docker.sh
 ```
 
 ## Docker Compose
@@ -105,5 +115,5 @@ Service is exposed on `http://localhost:8080`.
 Compose smoke test:
 
 ```bash
-pnpm test:compose
+sh deploy/test-compose.sh
 ```
