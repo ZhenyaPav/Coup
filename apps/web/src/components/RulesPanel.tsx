@@ -1,15 +1,22 @@
+import { Target, Play, Zap, Shield, AlertCircle } from 'lucide-react';
 import { humanRules } from '../data/human-rules';
 
 export function RulesPanel() {
   return (
     <div className="rules-panel">
       <section className="rules-section">
-        <h3>Objective</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Target size={18} style={{ color: 'var(--accent-gold)' }} />
+          Objective
+        </h3>
         <p className="rules-objective">{humanRules.objective}</p>
       </section>
 
       <section className="rules-section">
-        <h3>Your Turn</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Play size={18} style={{ color: 'var(--accent-gold)' }} />
+          Your Turn
+        </h3>
         <ul className="rules-list">
           {humanRules.turnRules.points.map((point, index) => (
             <li key={index}>{point}</li>
@@ -18,7 +25,10 @@ export function RulesPanel() {
       </section>
 
       <section className="rules-section">
-        <h3>Actions</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Zap size={18} style={{ color: 'var(--accent-gold)' }} />
+          Actions
+        </h3>
         
         <div className="action-category">
           <h4>Basic Actions (Anyone can do)</h4>
@@ -59,7 +69,10 @@ export function RulesPanel() {
       </section>
 
       <section className="rules-section">
-        <h3>Blocking</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Shield size={18} style={{ color: 'var(--accent-gold)' }} />
+          Blocking
+        </h3>
         <p className="rules-description">{humanRules.blocking.description}</p>
         <ul className="rules-list blocks-list">
           {humanRules.blocking.blocks.map((block, index) => (
@@ -73,7 +86,10 @@ export function RulesPanel() {
       </section>
 
       <section className="rules-section">
-        <h3>Challenges</h3>
+        <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertCircle size={18} style={{ color: 'var(--accent-gold)' }} />
+          Challenges
+        </h3>
         <p className="rules-description">{humanRules.challenging.description}</p>
         <div className="challenge-outcomes">
           <div className="challenge-success">
