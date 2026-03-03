@@ -653,7 +653,7 @@ body::before {
 
 .moves-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-3);
 }
 
@@ -661,20 +661,21 @@ body::before {
 .new-game-btn {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-md);
   background: linear-gradient(135deg, var(--bg-elevated), var(--bg-card));
   color: var(--ink-primary);
   font-weight: 500;
   font-size: var(--font-sm);
-  padding: var(--space-4) var(--space-4);
+  padding: var(--space-3) var(--space-4);
   cursor: pointer;
   transition: all var(--transition-fast);
   text-align: left;
   font-family: inherit;
   position: relative;
   overflow: hidden;
+  min-height: 48px;
 }
 
 .move-btn::before,
@@ -783,23 +784,28 @@ body::before {
 .coin-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 2px 8px;
+  gap: 4px;
+  padding: 3px 10px;
   border-radius: 12px;
   font-size: var(--font-xs);
-  font-weight: 700;
+  font-weight: 600;
   margin-left: auto;
   flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.coin-badge svg {
+  opacity: 0.9;
 }
 
 .coin-badge.gain {
-  background: rgba(45, 158, 95, 0.2);
+  background: rgba(45, 158, 95, 0.15);
   color: var(--accent-emerald);
   border: 1px solid rgba(45, 158, 95, 0.3);
 }
 
 .coin-badge.cost {
-  background: rgba(199, 62, 62, 0.2);
+  background: rgba(199, 62, 62, 0.15);
   color: var(--accent-crimson);
   border: 1px solid rgba(199, 62, 62, 0.3);
 }

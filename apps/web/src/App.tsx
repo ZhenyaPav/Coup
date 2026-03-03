@@ -12,7 +12,8 @@ import {
   Skull,
   Coins,
   User,
-  Bot
+  Bot,
+  CircleDollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getState, newGame, submitAction, type GameStateResponse, type Move, type PlayerId } from './api';
@@ -83,7 +84,10 @@ function MoveButtonContent({ label, move }: { label: string; move: Move }) {
         <span className="move-btn-claim">claim {claim}</span>
       )}
       {coinEffect && (
-        <span className={coinClass}>{coinEffect}</span>
+        <span className={coinClass}>
+          <CircleDollarSign size={12} />
+          {coinEffect} coins
+        </span>
       )}
       {move.type === 'declare_action' && move.target && (
         <span className="move-btn-target">
