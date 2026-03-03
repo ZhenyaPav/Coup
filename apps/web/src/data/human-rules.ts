@@ -67,7 +67,7 @@ export const humanRules = {
     title: "Challenges",
     description: "Any character claim (for action or block) can be challenged:",
     success: "If challenged player CANNOT prove claim → they lose 1 influence",
-    failure: "If challenged player CAN prove claim → challenger loses 1 influence, card is replaced"
+    failure: "If challenged player CAN prove claim → challenger loses 1 influence, and challenged player draws a replacement card"
   }
 };
 
