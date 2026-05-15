@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import App from '../src/App';
 
@@ -35,6 +35,7 @@ const humanTurnState = {
 };
 
 afterEach(() => {
+  cleanup();
   vi.unstubAllGlobals();
 });
 
@@ -56,9 +57,7 @@ describe('App', () => {
     vi.stubGlobal('fetch', fetchMock);
     render(<App />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Income (+1)')).toBeTruthy();
-    });
+    expect(await screen.findByRole('button', { name: /Income\s+\+1 coins/i })).toBeTruthy();
 
     expect(fetchMock).toHaveBeenCalled();
   });
@@ -106,9 +105,7 @@ describe('App', () => {
     vi.stubGlobal('fetch', fetchMock);
     render(<App />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Income (+1)')).toBeTruthy();
-    });
+    expect(await screen.findByRole('button', { name: /Income\s+\+1 coins/i })).toBeTruthy();
 
     expect(calls.some((url) => url.includes('/api/game/new'))).toBe(false);
     expect(calls.some((url) => url.includes('/api/game/state?viewer=human'))).toBe(true);
@@ -125,9 +122,7 @@ describe('App', () => {
     vi.stubGlobal('fetch', fetchMock);
     render(<App />);
 
-    await waitFor(() => {
-      expect(screen.getByText('Income (+1)')).toBeTruthy();
-    });
+    expect(await screen.findByRole('button', { name: /Income\s+\+1 coins/i })).toBeTruthy();
 
     fireEvent.change(screen.getByLabelText('First Turn'), {
       target: { value: 'ai' }

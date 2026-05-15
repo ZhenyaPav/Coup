@@ -51,7 +51,9 @@ describe('CoupEngine', () => {
 
   it('supports challenge flow for a claimed action', () => {
     const engine = new CoupEngine(() => 0.3);
-    engine.newGame('human');
+    const state = engine.newGame('human');
+    state.players.human.cards[0]!.character = 'duke';
+    state.players.human.cards[0]!.revealed = false;
 
     const declared = engine.applyMove('human', { type: 'declare_action', action: 'tax' });
     expect(declared.ok).toBe(true);

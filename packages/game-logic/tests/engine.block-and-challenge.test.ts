@@ -50,6 +50,7 @@ describe('CoupEngine blocks and challenges', () => {
     const engine = new CoupEngine(() => 0.5);
     const state = engine.newGame('human');
 
+    state.players.human.coins = 7;
     state.players.ai.cards[0]!.revealed = true;
     state.players.ai.cards[1]!.revealed = false;
 
