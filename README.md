@@ -117,3 +117,13 @@ Compose smoke test:
 ```bash
 sh deploy/test-compose.sh
 ```
+
+## Kubernetes
+
+Deploy with Helm:
+
+```bash
+helm upgrade --install coup ./deploy/helm/coup
+```
+
+See `deploy/helm/coup/README.md` for image tags, ingress, and private GHCR pulls.

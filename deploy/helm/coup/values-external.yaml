@@ -1,0 +1,27 @@
+# Values for exposing Coup through a cluster ingress controller.
+
+image:
+  repository: ghcr.io/zhenyapav/coup-app
+  tag: latest
+
+ingress:
+  enabled: true
+  className: traefik
+  host: coup.example.com
+  path: /
+  pathType: Prefix
+  annotations: {}
+  tls: []
+
+# If the GHCR package is private, create a pull secret and uncomment:
+# imagePullSecrets:
+#   - name: ghcr-pull
+
+# If cert-manager is installed, use this shape for TLS:
+# ingress:
+#   annotations:
+#     cert-manager.io/cluster-issuer: letsencrypt-prod
+#   tls:
+#     - secretName: coup-tls
+#       hosts:
+#         - coup.example.com
