@@ -46,7 +46,7 @@ export async function newGame(startingPlayer: PlayerId = 'human'): Promise<GameS
   const res = await fetch('/api/game/new', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ startingPlayer })
+    body: JSON.stringify({ startingPlayer, viewer: 'human' })
   });
   return parseJson<GameStateResponse>(res);
 }

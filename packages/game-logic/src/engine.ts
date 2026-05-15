@@ -32,11 +32,16 @@ function cloneCard(card: InfluenceCard): InfluenceCard {
   return { ...card };
 }
 
-function cardVisibleTo(card: InfluenceCard, viewer: PlayerId, owner: PlayerId): SerializedPlayer['cards'][number] {
+function cardVisibleTo(
+  card: InfluenceCard,
+  viewer: PlayerId,
+  owner: PlayerId,
+  index: number
+): SerializedPlayer['cards'][number] {
   if (owner === viewer || card.revealed) {
     return { id: card.id, character: card.character, revealed: card.revealed };
   }
-  return { id: card.id, revealed: false };
+  return { id: `hidden-${owner}-${index}`, revealed: false };
 }
 
 function nextPlayer(player: PlayerId): PlayerId {
@@ -610,7 +615,7 @@ export class CoupEngine {
       id: owner,
       coins: player.coins,
       alive: player.alive,
-      cards: player.cards.map((card) => cardVisibleTo(card, viewer, owner))
+      cards: player.cards.map((card, index) => cardVisibleTo(card, viewer, owner, index))
     };
   }
 

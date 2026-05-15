@@ -8,13 +8,17 @@ export function createGameContext(): { engine: CoupEngine } {
 
 export async function registerGameRoutes(app: FastifyInstance, ctx: { engine: CoupEngine }): Promise<void> {
   app.post('/api/game/new', async (request, reply) => {
-    const body = (request.body ?? {}) as { startingPlayer?: 'human' | 'ai' };
+    const body = (request.body ?? {}) as { startingPlayer?: 'human' | 'ai'; viewer?: 'human' | 'ai' };
     const startingPlayer = body.startingPlayer === 'ai' ? 'ai' : 'human';
+    const viewer = parseViewer(body.viewer);
+    if (!viewer) {
+      return reply.status(400).send({ code: 'BAD_REQUEST', message: 'viewer must be human or ai' });
+    }
 
     ctx.engine.newGame(startingPlayer);
     return reply.send({
       gameId: 'default',
-      state: ctx.engine.getView('human')
+      state: ctx.engine.getView(viewer)
     });
   });
 

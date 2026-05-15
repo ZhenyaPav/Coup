@@ -71,8 +71,10 @@ Base URL examples below assume `http://localhost:8080`.
 Optional body:
 
 ```json
-{ "startingPlayer": "human" }
+{ "startingPlayer": "human", "viewer": "ai" }
 ```
+
+`viewer` is required and controls which player's private cards are visible in the returned state.
 
 ### 2) Read AI view of state
 
@@ -178,7 +180,7 @@ Never invent moves outside `state.legalMoves`.
 ```bash
 curl -s -X POST http://localhost:8080/api/game/new \
   -H 'content-type: application/json' \
-  -d '{"startingPlayer":"human"}'
+  -d '{"startingPlayer":"human","viewer":"ai"}'
 ```
 
 ### Get AI state

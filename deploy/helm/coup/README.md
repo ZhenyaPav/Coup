@@ -49,7 +49,9 @@ helm upgrade --install coup ./deploy/helm/coup \
 
 Set `ingress.className` to the ingress controller installed in your cluster,
 commonly `nginx` or `traefik`, and point your DNS record at that controller's
-external address.
+external address. `/api/rules` renders examples from the request's
+`X-Forwarded-Proto` and `X-Forwarded-Host` headers, which are normally set by
+the ingress controller.
 
 For TLS with cert-manager:
 

@@ -73,6 +73,8 @@ This does not require installing Node.js, npm, or pnpm on your system.
 - `GET /api/rules` (serves `docs/coup-rules.md` as markdown)
 - `GET /api/health`
 
+`POST /api/game/new` requires `viewer: "human" | "ai"` in the JSON body and returns that viewer's masked state.
+
 Out-of-turn action returns `409` with `{ code: "NOT_YOUR_TURN" }`.
 
 ## AI loop example

@@ -134,7 +134,7 @@ describe('App', () => {
         '/api/game/new',
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ startingPlayer: 'ai' })
+          body: JSON.stringify({ startingPlayer: 'ai', viewer: 'human' })
         })
       );
     });

@@ -11,7 +11,7 @@ describe('server behavior', () => {
 
   it('returns ILLEGAL_MOVE when move is not legal in current phase', async () => {
     const app = await buildServer();
-    await app.inject({ method: 'POST', url: '/api/game/new', payload: { startingPlayer: 'human' } });
+    await app.inject({ method: 'POST', url: '/api/game/new', payload: { startingPlayer: 'human', viewer: 'human' } });
 
     const res = await app.inject({
       method: 'POST',
@@ -25,7 +25,7 @@ describe('server behavior', () => {
 
   it('state response includes legal moves and turn flag', async () => {
     const app = await buildServer();
-    await app.inject({ method: 'POST', url: '/api/game/new', payload: { startingPlayer: 'human' } });
+    await app.inject({ method: 'POST', url: '/api/game/new', payload: { startingPlayer: 'human', viewer: 'human' } });
 
     const res = await app.inject({ method: 'GET', url: '/api/game/state?viewer=human' });
     expect(res.statusCode).toBe(200);
