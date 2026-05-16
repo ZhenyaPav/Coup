@@ -31,11 +31,11 @@ Actions:
 
 Base URL examples use `http://localhost:8080`.
 
-- Start/reset: `POST /api/game/new` with `{"startingPlayer":"human","viewer":"ai"}`.
-- Read AI state: `GET /api/game/state?viewer=ai`.
-- Submit move: `POST /api/game/action` with `{"viewer":"ai","move":<one exact legal move>}`.
-- Read this document: `GET /api/rules`.
-- Health: `GET /api/health`.
+- Start/reset: `POST http://localhost:8080/api/game/new` with `{"startingPlayer":"human","viewer":"ai"}`.
+- Read AI state: `GET http://localhost:8080/api/game/state?viewer=ai`.
+- Submit move: `POST http://localhost:8080/api/game/action` with `{"viewer":"ai","move":<one exact legal move>}`.
+- Read this document: `GET http://localhost:8080/api/rules`.
+- Health: `GET http://localhost:8080/api/health`.
 
 State fields to rely on:
 
