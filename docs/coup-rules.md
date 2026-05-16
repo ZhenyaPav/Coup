@@ -1,136 +1,66 @@
 # Coup AI Rules
 
-This document is a gameplay + API playbook for the AI agent.
+Gameplay/API contract for the `ai` player. The server is authoritative; use `state.legalMoves`.
 
-## Match Format Implemented Here
+## Match
 
-- Game: Coup
-- Players: exactly 2 (`human`, `ai`)
-- Server is authoritative for all rules
-- Single in-memory match (`gameId: default`)
-- Two-player starting coin adjustment is active:
-  - Starting player: 1 coin
-  - Other player: 2 coins
+- Players: exactly 2 (`human`, `ai`), single in-memory game (`default`).
+- Objective: be the last player with at least one unrevealed influence.
+- Setup: each player has 2 influence cards. Starting player gets 1 coin; other player gets 2.
+- Privacy: never reveal hidden cards, private hand details, or hidden-information reasoning to the human.
 
-## Objective
+## Rules
 
-Be the last player with at least one unrevealed influence card.
+- On your turn, take one action. If you start with 10+ coins, you must `coup`.
+- Losing influence means revealing one hidden card. Revealing both cards eliminates you.
+- Claims for `tax`, `assassinate`, `steal`, `exchange`, and blocks may be challenged.
+- If a challenged player proves the claim, the challenger loses 1 influence and the proven card is shuffled back/replaced.
+- If a challenged player fails, their claim fails and they lose 1 influence.
 
-## AI Disclosure Constraint
+Actions:
 
-- Do not reveal to the human opponent any hidden cards, private hand details, or internal reasoning that depends on hidden information.
+- `income`: gain 1 coin.
+- `foreign_aid`: gain 2 coins; blockable by Duke.
+- `coup`: pay 7; target loses 1 influence; cannot be blocked/challenged.
+- `tax` / Duke: gain 3.
+- `assassinate` / Assassin: pay 3; target loses 1 influence unless blocked by Contessa.
+- `steal` / Captain: take up to 2 coins from target; blockable by Captain or Ambassador.
+- `exchange` / Ambassador: draw 2, inspect them, keep as many cards as you have unrevealed influence, return the rest.
 
-## Core Rules Summary
+## API
 
-### Influence and elimination
+Base URL examples use `http://localhost:8080`.
 
-- Each player has 2 influence cards.
-- When you lose influence, you reveal one hidden card.
-- If both cards are revealed, you are eliminated.
+- Start/reset: `POST /api/game/new` with `{"startingPlayer":"human","viewer":"ai"}`.
+- Read AI state: `GET /api/game/state?viewer=ai`.
+- Submit move: `POST /api/game/action` with `{"viewer":"ai","move":<one exact legal move>}`.
+- Read this document: `GET /api/rules`.
+- Health: `GET /api/health`.
 
-### Turn rule
+State fields to rely on:
 
-- On your turn, take exactly one action.
-- If you start your turn with 10+ coins, you must `coup`.
+- `state.isYourTurn`: true when the AI must act.
+- `state.legalMoves`: authoritative list of valid moves. Choose one exact object from this list.
+- `state.nextInstruction`: human-readable status.
+- `state.players`: includes AI private cards; opponent hidden cards are masked.
+- `state.pendingAction`, `state.pendingBlock`, `state.waitingReason`, `state.log`.
 
-### Actions
+## Required AI Loop
 
-- `income`: gain 1 coin
-- `foreign_aid`: gain 2 coins (can be blocked by Duke)
-- `coup`: pay 7, target loses 1 influence (cannot be blocked/challenged)
-- `tax` (Duke claim): gain 3
-- `assassinate` (Assassin claim): pay 3, target loses 1 influence if not blocked
-- `steal` (Captain claim): take up to 2 from target
-- `exchange` (Ambassador claim): draw 2, choose what to keep
+1. Call `GET /api/game/state?viewer=ai`.
+2. If game over, stop.
+3. If `state.isYourTurn` is `false`, wait for the human or poll later.
+4. If `state.isYourTurn` is `true`, choose exactly one object from `state.legalMoves`.
+5. Call `POST /api/game/action` with that exact move object.
+6. Use the returned state and repeat from step 2.
 
-### Counteractions (blocks)
+Do not answer with only prose, strategy, or a JSON snippet when `state.isYourTurn` is `true`. The decision is incomplete until `/api/game/action` succeeds.
 
-- Duke blocks `foreign_aid`
-- Contessa blocks `assassinate` (target only)
-- Captain or Ambassador block `steal` (target only)
+Do not assume a submitted move ends your turn. Follow-up decisions may be required: `challenge_action`, `block`, `challenge_block`, `allow`, `choose_influence_to_reveal`, or `choose_exchange`.
 
-### Challenges
+Never invent, rename, simplify, or partially reconstruct moves. This matters for generated card IDs in `choose_influence_to_reveal` and `choose_exchange`. `allow` is also a move and must be posted.
 
-Any character claim (action/block) may be challenged.
-
-- If challenged player proves claim:
-  - challenger loses 1 influence
-  - proven card is shuffled back and replaced
-- If challenged player fails claim:
-  - challenged claim fails
-  - challenged player loses 1 influence
-
-## API Contract For The Agent
-
-Base URL examples below assume `http://localhost:8080`.
-
-### 1) Start/reset game
-
-`POST /api/game/new`
-
-Optional body:
-
-```json
-{ "startingPlayer": "human", "viewer": "ai" }
-```
-
-`viewer` is required and controls which player's private cards are visible in the returned state.
-
-### 2) Read AI view of state
-
-`GET /api/game/state?viewer=ai`
-
-Response contains:
-
-- `state.phase`
-- `state.currentPlayer`
-- `state.nextInstruction` (plain-text instruction about who should act next)
-- `state.players`
-- `state.pendingAction`
-- `state.pendingBlock`
-- `state.legalMoves` (authoritative list of currently allowed moves)
-- `state.isYourTurn`
-- `state.waitingReason`
-- `state.log`
-
-Important: hidden opponent cards are masked in this view.
-
-Example `state.nextInstruction` values for AI view:
-
-- `AI action is expected. Call POST /api/game/action with one legal move.`
-- `Wait. Human action is expected.`
-- `Game over. No action needed.`
-
-### 3) Submit a move
-
-`POST /api/game/action`
-
-Body:
-
-```json
-{
-  "viewer": "ai",
-  "move": { "type": "declare_action", "action": "income" }
-}
-```
-
-### 4) Fetch this rules document from API
-
-`GET /api/rules`
-
-Returns this markdown as `text/markdown`.
-
-### 5) Health
-
-`GET /api/health`
-
-Returns:
-
-```json
-{ "ok": true }
-```
-
-## Move Payload Shapes
+## Move Shapes
 
 - `{"type":"declare_action","action":"income"}`
 - `{"type":"declare_action","action":"foreign_aid"}`
@@ -140,97 +70,37 @@ Returns:
 - `{"type":"declare_action","action":"assassinate","target":"human"}`
 - `{"type":"declare_action","action":"coup","target":"human"}`
 - `{"type":"challenge_action"}`
-- `{"type":"block","as":"duke"}` (or `contessa`, `captain`, `ambassador` as legal)
+- `{"type":"block","as":"duke"}` or `contessa`, `captain`, `ambassador`
 - `{"type":"challenge_block"}`
 - `{"type":"allow"}`
 - `{"type":"choose_influence_to_reveal","cardId":"c12"}`
 - `{"type":"choose_exchange","keepCardIds":["c3","c8"]}`
 
-Note: `allow` is still a move and must be sent via `POST /api/game/action` like any other move.
+## Errors
 
-## Error Handling
+- `409 NOT_YOUR_TURN`: acted outside the AI decision window.
+- `422 ILLEGAL_MOVE`: move not in `state.legalMoves`.
+- `409 GAME_OVER`: game already finished.
 
-- `409` + `NOT_YOUR_TURN`: you acted outside your turn/decision window.
-- `422` + `ILLEGAL_MOVE`: move not legal in current state.
-- `409` + `GAME_OVER`: game already finished.
+On any error, re-sync with `GET /api/game/state?viewer=ai`.
 
-The agent should handle these as non-fatal and re-sync via state fetch.
+## Tool Calling
 
-## Recommended AI Loop
+If using a tool/function framework, register `POST /api/game/action` as a required tool when `state.isYourTurn` is `true`.
 
-1. Call `GET /api/game/state?viewer=ai` once to get initial state.
-2. If `state.nextInstruction` says game is over, stop.
-3. If `state.nextInstruction` says AI action is expected, choose exactly one move from `state.legalMoves`.
-4. Submit via `POST /api/game/action` and use the returned `state` as the next state.
-5. Repeat from step 2 using that latest returned state.
-6. If `state.nextInstruction` says wait for human, do not call a dedicated turn-check endpoint; wait for the next trigger/event, or poll `GET /api/game/state?viewer=ai` only when no fresh state is available.
+Recommended tool:
 
-Important turn semantics:
+- Name: `submit_coup_move`
+- Arguments: `{ "viewer": "ai", "move": <one exact item from state.legalMoves> }`
 
-- Do not assume your turn ends after one submitted move.
-- Your turn may continue into follow-up decision windows (`challenge_action`, `block`, `challenge_block`, `allow`, `choose_influence_to_reveal`, `choose_exchange`) depending on phase.
-- Always trust the latest `state.nextInstruction` and `state.legalMoves`, not assumptions.
+Natural-language instructions alone are not enough for all agents; the orchestrator should require a real action call during AI decision windows.
 
-Never invent moves outside `state.legalMoves`.
-
-## Curl Examples
-
-### New game
-
-```bash
-curl -s -X POST http://localhost:8080/api/game/new \
-  -H 'content-type: application/json' \
-  -d '{"startingPlayer":"human","viewer":"ai"}'
-```
-
-### Get AI state
+## Minimal Curl
 
 ```bash
 curl -s 'http://localhost:8080/api/game/state?viewer=ai'
-```
 
-### AI plays income
-
-```bash
 curl -s -X POST http://localhost:8080/api/game/action \
   -H 'content-type: application/json' \
   -d '{"viewer":"ai","move":{"type":"declare_action","action":"income"}}'
-```
-
-### AI challenges opponent action
-
-```bash
-curl -s -X POST http://localhost:8080/api/game/action \
-  -H 'content-type: application/json' \
-  -d '{"viewer":"ai","move":{"type":"challenge_action"}}'
-```
-
-### AI blocks as Contessa
-
-```bash
-curl -s -X POST http://localhost:8080/api/game/action \
-  -H 'content-type: application/json' \
-  -d '{"viewer":"ai","move":{"type":"block","as":"contessa"}}'
-```
-
-### AI reveals selected card
-
-```bash
-curl -s -X POST http://localhost:8080/api/game/action \
-  -H 'content-type: application/json' \
-  -d '{"viewer":"ai","move":{"type":"choose_influence_to_reveal","cardId":"c7"}}'
-```
-
-### AI chooses exchange cards
-
-```bash
-curl -s -X POST http://localhost:8080/api/game/action \
-  -H 'content-type: application/json' \
-  -d '{"viewer":"ai","move":{"type":"choose_exchange","keepCardIds":["c4","c9"]}}'
-```
-
-### Read rules through API
-
-```bash
-curl -s http://localhost:8080/api/rules
 ```

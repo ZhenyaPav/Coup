@@ -68,4 +68,22 @@ describe('CoupEngine', () => {
     const revealed = engine.applyMove('ai', revealMove);
     expect(revealed.ok).toBe(true);
   });
+
+  it('shows exchange draws only to the exchanging player', () => {
+    const engine = new CoupEngine(() => 0.3);
+    engine.newGame('human');
+
+    expect(engine.applyMove('human', { type: 'declare_action', action: 'exchange' }).ok).toBe(true);
+    expect(engine.applyMove('ai', { type: 'allow' }).ok).toBe(true);
+
+    const humanView = engine.getView('human');
+    expect(humanView.pendingExchange?.player).toBe('human');
+    expect(humanView.pendingExchange?.drawn).toHaveLength(2);
+    expect(humanView.pendingExchange?.drawn.every((card) => card.character && !card.revealed)).toBe(true);
+
+    const aiView = engine.getView('ai');
+    expect(aiView.pendingExchange?.player).toBe('human');
+    expect(aiView.pendingExchange?.drawn).toHaveLength(2);
+    expect(aiView.pendingExchange?.drawn.every((card) => !card.character && !card.revealed)).toBe(true);
+  });
 });

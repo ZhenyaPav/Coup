@@ -754,6 +754,10 @@ body::before {
   border-left: 3px solid var(--ink-muted);
 }
 
+.move-btn--choose_exchange {
+  border-left: 3px solid var(--accent-emerald);
+}
+
 /* Move Button Content Layout */
 .move-btn {
   display: flex;
@@ -808,6 +812,50 @@ body::before {
   background: rgba(199, 62, 62, 0.15);
   color: var(--accent-crimson);
   border: 1px solid rgba(199, 62, 62, 0.3);
+}
+
+/* Exchange */
+.exchange-pool {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.exchange-card {
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02));
+}
+
+.exchange-card--drawn {
+  border-color: rgba(45, 158, 95, 0.35);
+  box-shadow: inset 0 1px 0 rgba(45, 158, 95, 0.12);
+}
+
+.exchange-card-name {
+  font-family: var(--font-serif);
+  font-size: var(--font-lg);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.exchange-card-source {
+  width: fit-content;
+  padding: 2px 8px;
+  border: 1px solid var(--border-glass);
+  border-radius: 999px;
+  color: var(--ink-muted);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
 }
 
 /* ============================================

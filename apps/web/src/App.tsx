@@ -28,6 +28,33 @@ function formatCharacterName(character: string): string {
   return character.charAt(0).toUpperCase() + character.slice(1);
 }
 
+type VisibleCard = GameStateResponse['state']['players'][PlayerId]['cards'][number];
+
+function exchangeCardsFor(state: GameStateResponse['state']): Array<VisibleCard & { source: 'current' | 'drawn' }> {
+  const pending = state.pendingExchange;
+  if (!pending) return [];
+
+  const current = state.players[pending.player].cards
+    .filter((card) => !card.revealed)
+    .map((card) => ({ ...card, source: 'current' as const }));
+  const drawn = pending.drawn.map((card) => ({ ...card, source: 'drawn' as const }));
+  return [...current, ...drawn];
+}
+
+function exchangeCardLabel(card: Pick<VisibleCard, 'id' | 'character'>): string {
+  return card.character ? formatCharacterName(card.character) : `Card ${card.id}`;
+}
+
+function exchangeKeepLabel(move: Extract<Move, { type: 'choose_exchange' }>, state?: GameStateResponse['state']): string {
+  if (!state) return `Keep ${move.keepCardIds.length} cards`;
+  const cards = exchangeCardsFor(state);
+  const names = move.keepCardIds.map((id) => {
+    const card = cards.find((candidate) => candidate.id === id);
+    return card ? exchangeCardLabel(card) : `Card ${id}`;
+  });
+  return `Keep ${names.join(' + ')}`;
+}
+
 function getActionIcon(moveType: string, action?: string) {
   if (moveType === 'declare_action') {
     switch (action) {
@@ -121,7 +148,7 @@ function moveLabel(move: Move, state?: GameStateResponse['state']): string {
     }
     return `Reveal Card`;
   }
-  if (move.type === 'choose_exchange') return `Keep ${move.keepCardIds.length} cards`;
+  if (move.type === 'choose_exchange') return exchangeKeepLabel(move, state);
   return move.type;
 }
 
@@ -159,6 +186,27 @@ function logActorIcon(actor: string) {
   if (actor === 'human') return <User size={12} />;
   if (actor === 'ai') return <Bot size={12} />;
   return <Sparkles size={12} />;
+}
+
+function ExchangePool({ state }: { state: GameStateResponse['state'] }) {
+  if (!state.pendingExchange || state.pendingExchange.player !== 'human') return null;
+
+  const cards = exchangeCardsFor(state);
+  if (cards.length === 0) return null;
+
+  return (
+    <div className="exchange-pool" aria-label="Exchange cards">
+      {cards.map((card) => (
+        <div
+          key={`${card.source}-${card.id}`}
+          className={`exchange-card exchange-card--${card.source} character-${card.character || 'hidden'}`}
+        >
+          <span className="exchange-card-name">{exchangeCardLabel(card)}</span>
+          <span className="exchange-card-source">{card.source === 'current' ? 'Current' : 'Drawn'}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function App() {
@@ -348,29 +396,32 @@ export default function App() {
               <p className="waiting">{getWaitingMessage(data.state.waitingReason)}</p>
             </div>
           ) : (
-            <div className="moves-grid">
-              {legalMoves.map((move, index) => {
-                const actionType = move.type === 'declare_action' ? move.action : undefined;
-                const label = moveLabel(move, data.state);
-                return (
-                  <motion.button
-                    key={`${move.type}-${index}`}
-                    className={`move-btn move-btn--${move.type}`}
-                    onClick={() => onMove(move)}
-                    disabled={busy}
-                    title={getMoveDescription(move)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    {getActionIcon(move.type, actionType)}
-                    <MoveButtonContent label={label} move={move} />
-                  </motion.button>
-                );
-              })}
-            </div>
+            <>
+              <ExchangePool state={data.state} />
+              <div className="moves-grid">
+                {legalMoves.map((move, index) => {
+                  const actionType = move.type === 'declare_action' ? move.action : undefined;
+                  const label = moveLabel(move, data.state);
+                  return (
+                    <motion.button
+                      key={`${move.type}-${index}`}
+                      className={`move-btn move-btn--${move.type}`}
+                      onClick={() => onMove(move)}
+                      disabled={busy}
+                      title={getMoveDescription(move)}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                    >
+                      {getActionIcon(move.type, actionType)}
+                      <MoveButtonContent label={label} move={move} />
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </>
           )}
         </section>
 

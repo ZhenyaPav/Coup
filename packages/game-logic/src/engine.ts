@@ -23,6 +23,7 @@ import type {
   PendingAction,
   PlayerId,
   PlayerState,
+  SerializedPendingExchange,
   SerializedPlayer
 } from './types.js';
 
@@ -86,6 +87,7 @@ export class CoupEngine {
       turnNumber: this.state.turnNumber,
       pendingAction: this.state.pendingAction,
       pendingBlock: this.state.pendingBlock,
+      pendingExchange: this.serializePendingExchange(viewer),
       players,
       legalMoves,
       isYourTurn,
@@ -616,6 +618,16 @@ export class CoupEngine {
       coins: player.coins,
       alive: player.alive,
       cards: player.cards.map((card, index) => cardVisibleTo(card, viewer, owner, index))
+    };
+  }
+
+  private serializePendingExchange(viewer: PlayerId): SerializedPendingExchange | undefined {
+    const pending = this.state.pendingExchange;
+    if (!pending) return undefined;
+
+    return {
+      player: pending.player,
+      drawn: pending.drawn.map((card, index) => cardVisibleTo(card, viewer, pending.player, index))
     };
   }
 

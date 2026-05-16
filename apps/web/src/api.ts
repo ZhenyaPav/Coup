@@ -20,6 +20,10 @@ export interface GameStateResponse {
     waitingReason?: string;
     nextInstruction: string;
     legalMoves: Move[];
+    pendingExchange?: {
+      player: PlayerId;
+      drawn: Array<{ id: string; character?: string; revealed: boolean }>;
+    };
     players: Record<
       PlayerId,
       {

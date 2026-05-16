@@ -79,6 +79,11 @@ export interface PendingExchange {
   drawn: InfluenceCard[];
 }
 
+export interface SerializedPendingExchange {
+  player: PlayerId;
+  drawn: SerializedPlayer['cards'];
+}
+
 export interface GameState {
   players: Record<PlayerId, PlayerState>;
   treasuryCoins: number;
@@ -131,6 +136,7 @@ export interface GameStateView {
   turnNumber: number;
   pendingAction: Omit<PendingAction, 'claimedCharacter'> & { claimedCharacter: Character | undefined } | undefined;
   pendingBlock: PendingBlock | undefined;
+  pendingExchange: SerializedPendingExchange | undefined;
   players: Record<PlayerId, SerializedPlayer>;
   legalMoves: Move[];
   isYourTurn: boolean;

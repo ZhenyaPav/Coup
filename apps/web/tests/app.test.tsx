@@ -139,4 +139,40 @@ describe('App', () => {
       );
     });
   });
+
+  it('shows exchange card names and drawn cards before choosing', async () => {
+    const exchangeState = {
+      ...humanTurnState,
+      state: {
+        ...humanTurnState.state,
+        phase: 'resolve',
+        legalMoves: [
+          { type: 'choose_exchange', keepCardIds: ['h1', 'd1'] },
+          { type: 'choose_exchange', keepCardIds: ['d1', 'd2'] }
+        ],
+        pendingExchange: {
+          player: 'human',
+          drawn: [
+            { id: 'd1', character: 'ambassador', revealed: false },
+            { id: 'd2', character: 'contessa', revealed: false }
+          ]
+        }
+      }
+    };
+
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify(exchangeState), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+
+    vi.stubGlobal('fetch', fetchMock);
+    render(<App />);
+
+    expect(await screen.findByRole('button', { name: /Keep Duke \+ Ambassador/i })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Keep Ambassador \+ Contessa/i })).toBeTruthy();
+    expect(screen.getByLabelText('Exchange cards')).toBeTruthy();
+    expect(screen.getAllByText('Drawn')).toHaveLength(2);
+  });
 });
